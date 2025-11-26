@@ -9,6 +9,11 @@ module.exports = {
     usage: '',
     
     async execute(message, args) {
+        const requiredrole = '1440146016392450179';
+        if (!message.member.roles.cache.has(requiredrole)) {
+            await message.reply('❌ You do not have the required role.')
+            return message.delete();
+        }
         const shifts = loadShifts();
         const userId = message.author.id;
         const userData = shifts[userId] || { totalTime: 0, currentShift: null, currentBreak: null };
@@ -26,6 +31,7 @@ module.exports = {
         const row = createShiftButtons(userId, shifts);
         
         await message.reply({ embeds: [embed], components: [row] });
+        message.delete()
     }
 };
 

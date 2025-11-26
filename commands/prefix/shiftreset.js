@@ -8,6 +8,11 @@ module.exports = {
     usage: '',
     
     async execute(message, args) {
+        const requiredrole = '1440146016392450179';
+        if (!message.member.roles.cache.has(requiredrole)) {
+            await message.reply('❌ You do not have the required role.')
+            return message.delete();
+        }
         const shifts = loadShifts();
         
         let dmMessage = '📊 **Shift Data Before Reset**\n\n';
@@ -29,6 +34,7 @@ module.exports = {
         } catch {
             await message.reply('✅ All shift times have been reset to 0. (Could not DM you the data)');
         }
+        message.delete()
     }
 };
 

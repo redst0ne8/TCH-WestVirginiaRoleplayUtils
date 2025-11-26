@@ -5,13 +5,14 @@ module.exports = {
     description: 'Vote to start a session',
     aliases: ["vote"],
     async execute(message) {
-        const sessionschannelid = '1443335742318444654';
+        const sessionschannelid = '1440146018200195229';
         const channel = message.guild.channels.cache.get(sessionschannelid);
         const sessionping = 'YOUR_ROLE_ID';
 
-        const requiredrole = '1443337222706434138';
+        const requiredrole = '1443048237316702379';
         if (!message.member.roles.cache.has(requiredrole)) {
-            return message.reply('❌ You do not have the required role.')
+            await message.reply('❌ You do not have the required role.')
+            return message.delete();
         }
 
         const svoteEmbed = new EmbedBuilder()
@@ -20,12 +21,15 @@ module.exports = {
             .setAuthor({ name: `Initiated by: ${message.author.tag}`, iconURL: message.author.displayAvatarURL() })
             .setFooter({ text: 'West Virginia Sessions' })
             .addFields(
-                { name: 'Votes Required', value: 'We need # Votes to start a session! Vote up!'}
+                { name: 'Votes Required', value: 'We need 6 Votes to start a session! Vote up!'}
             )
             .setTimestamp()
-            .setColor('#000000');
+            .setColor('#C0B030')
+            .setImage('https://cdn.discordapp.com/attachments/1443328384187895919/1443353169571872799/image.png?ex=6928c2e3&is=69277163&hm=f67224320d5796eee07c7b3e9c3d008e63e35b0356b187eef97e8f65226b5b7d&');
+
         
         const sentmessage = await channel.send({ embeds: [svoteEmbed], content: `<@&${sessionping}>` });
         await sentmessage.react('✅')
+        message.delete()
     }
 }

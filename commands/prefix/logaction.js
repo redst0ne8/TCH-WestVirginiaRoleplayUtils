@@ -10,9 +10,10 @@ module.exports = {
     async execute(message, args) {
         const client = message.client;
 
-        const requiredrole = '1443337126837096459';
+        const requiredrole = '1440146016392450179';
         if (!message.member.roles.cache.has(requiredrole)) {
-            return message.reply('❌ You do not have the required role.')
+            await message.reply('❌ You do not have the required role.')
+            return message.delete();
         }
 
         if (args.length < 3) {
@@ -48,7 +49,7 @@ module.exports = {
             .setColor('#FF6B6B')
             .setTimestamp();
 
-        const channel = message.guild.channels.cache.get('1443331562874867904');
+        const channel = message.guild.channels.cache.get('1440146020397744260');
 
         if (!channel) {
             return message.channel.send('❌ **Error:** Log channel not found!');

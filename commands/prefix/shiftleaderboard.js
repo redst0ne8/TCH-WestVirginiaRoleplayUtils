@@ -9,6 +9,11 @@ module.exports = {
     usage: '[page]',
     
     async execute(message, args) {
+        const requiredrole = '1440146016392450179';
+        if (!message.member.roles.cache.has(requiredrole)) {
+            await message.reply('❌ You do not have the required role.')
+            return message.delete();
+        }
         const page = parseInt(args[0]) || 1;
         const shifts = loadShifts();
         
@@ -53,6 +58,7 @@ module.exports = {
         }
         
         await message.reply({ embeds: [embed] });
+        message.delete()
     }
 };
 
