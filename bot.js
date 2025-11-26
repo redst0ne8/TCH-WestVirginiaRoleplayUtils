@@ -58,6 +58,41 @@ async function handleShutdown(reason) {
     process.exit(0);
 }
 
+async function sendShutdownNotification(reason) {
+    try {
+        if (!client.isReady()) {
+            console.log('⚠️ Client not ready, cannot send shutdown notification');
+            return;
+        }
+
+        const channel = await client.channels.fetch(SHUTDOWN_CHANNEL_ID);
+        if (!channel) {
+            console.log('⚠️ Could not find shutdown notification channel');
+            return;
+        }
+
+        const message = `<@${SHUTDOWN_USER_ID}> 🔴 West Virginia **Bot Shutdown**\n\`\`\`\n${reason}\n\`\`\``;
+        await channel.send(message);
+        console.log('✅ Shutdown notification sent');
+    } catch (error) {
+        console.log('❌ Failed to send shutdown notification:', error);
+    }
+}
+
+// Graceful shutdown handler
+async function handleShutdown(reason) {
+    console.log(`\n🛑 Shutting down: ${reason}`);
+    
+    await sendShutdownNotification(reason);
+    
+    // Give time for the message to send
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Destroy client and exit
+    client.destroy();
+    process.exit(0);
+}
+
 // Handle SIGINT (Ctrl+C)
 process.on('SIGINT', () => {
     handleShutdown('SIGINT');

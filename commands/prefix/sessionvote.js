@@ -7,7 +7,7 @@ module.exports = {
     async execute(message) {
         const sessionschannelid = '1440146018200195229';
         const channel = message.guild.channels.cache.get(sessionschannelid);
-        const sessionping = 'YOUR_ROLE_ID';
+        const sessionping = '1442670471047938109';
 
         const requiredrole = '1443048237316702379';
         if (!message.member.roles.cache.has(requiredrole)) {
