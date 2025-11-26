@@ -18,9 +18,9 @@ function saveShifts(data) {
 }
 
 function createShiftButtons(userId, shifts) {
-    const userData = shifts[userId];
-    const onShift = userData?.currentShift;
-    const onBreak = userData?.currentBreak;
+    const userData = shifts[userId] || { totalTime: 0, currentShift: null, currentBreak: null };
+    const onShift = userData.currentShift;
+    const onBreak = userData.currentBreak;
     
     const row = new ActionRowBuilder()
         .addComponents(
@@ -28,12 +28,12 @@ function createShiftButtons(userId, shifts) {
                 .setCustomId('shift_start')
                 .setLabel('Start Shift')
                 .setStyle(ButtonStyle.Success)
-                .setDisabled(onShift),
+                .setDisabled(!!onShift),
             new ButtonBuilder()
                 .setCustomId('shift_break')
                 .setLabel('Start Break')
                 .setStyle(ButtonStyle.Primary)
-                .setDisabled(!onShift || onBreak),
+                .setDisabled(!onShift || !!onBreak),
             new ButtonBuilder()
                 .setCustomId('shift_stop')
                 .setLabel('Stop Shift')

@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const { loadShifts, saveShifts, createShiftButtons } = require('../../utils/shiftUtils');
+const { loadShifts, saveShifts, createShiftButtons } = require('../utils/shiftUtils');
 
 module.exports = {
     name: 'interactionCreate',

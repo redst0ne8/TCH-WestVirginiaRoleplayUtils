@@ -4,7 +4,7 @@ const { loadShifts, createShiftButtons } = require('../../utils/shiftUtils');
 module.exports = {
     name: 'shiftadmin',
     description: 'Manage another user\'s shift.',
-    aliases: ['shiftm'],
+    aliases: ['sa', 'adminshift'],
     minArgs: 1,
     usage: '{user}',
     

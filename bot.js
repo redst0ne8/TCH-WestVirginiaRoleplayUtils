@@ -30,6 +30,7 @@ const client = new Client({
 // Collections to store commands
 client.commands = new Collection(); // Slash commands
 client.prefixCommands = new Collection(); // Prefix commands
+client.eventHandlers = new Collection(); // Event handlers
 
 // Load modal handlers
 const modalHandlers = new Map();
@@ -45,35 +46,11 @@ let auditLogger;
 let purchaseMonitor;
 let nukeProtection;
 
-// Shutdown notification function
-/*async function sendShutdownNotification(reason) {
-    try {
-        if (!client.isReady()) {
-            console.log('⚠️ Client not ready, cannot send shutdown notification');
-            return;
-        }
-
-        const channel = await client.channels.fetch(SHUTDOWN_CHANNEL_ID);
-        if (!channel) {
-            console.log('⚠️ Could not find shutdown notification channel');
-            return;
-        }
-
-        const message = `<@${SHUTDOWN_USER_ID}> 🔴 **West Virginia Roleplay Utils: Bot Shutdown**\n\`\`\`\n${reason}\n\`\`\``;
-        await channel.send(message);
-        console.log('✅ Shutdown notification sent');
-    } catch (error) {
-        console.log('❌ Failed to send shutdown notification:', error);
-    }
-}*/
-
 // Graceful shutdown handler
 async function handleShutdown(reason) {
     console.log(`\n🛑 Shutting down: ${reason}`);
     
-    // await sendShutdownNotification(reason);
-    
-    // Give time for the message to send
+    // Give time for cleanup
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Destroy client and exit
@@ -108,6 +85,46 @@ async function loadModules() {
         console.log('✅ Modules loaded successfully');
     } catch (error) {
         console.log('❌ Failed to load modules:', error);
+    }
+}
+
+// Load event handlers
+async function loadEventHandlers() {
+    const eventsPath = path.join(__dirname, 'events');
+    
+    try {
+        if (fs.existsSync(eventsPath)) {
+            const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+            
+            for (const file of eventFiles) {
+                const filePath = path.join(eventsPath, file);
+                delete require.cache[require.resolve(filePath)];
+                
+                try {
+                    const event = require(filePath);
+                    
+                    if (!event.name) {
+                        console.warn(`⚠️ Event handler at ${file} is missing a name property`);
+                        continue;
+                    }
+                    
+                    if (typeof event.execute !== 'function') {
+                        console.warn(`⚠️ Event handler ${event.name} at ${file} is missing an execute function`);
+                        continue;
+                    }
+                    
+                    client.eventHandlers.set(event.name, event);
+                    console.log(`✅ Loaded event handler: ${event.name}`);
+                } catch (error) {
+                    console.log(`❌ Failed to load event handler ${file}: ${error.message}`);
+                }
+            }
+            console.log(`✅ All event handlers loaded from ./events`);
+        } else {
+            console.log(`⚠️ Events directory does not exist at ${eventsPath}`);
+        }
+    } catch (error) {
+        console.log(`❌ Failed to load event handlers: ${error}`);
     }
 }
 
@@ -335,6 +352,7 @@ client.once('ready', async () => {
     console.log('📦 Loading bot components...');
     await loadCommands(); // Slash commands
     await loadPrefixCommands(); // Prefix commands
+    await loadEventHandlers(); // Event handlers (NEW!)
     await loadModalHandlers();
     await loadButtonHandlers();
     await loadModules(); // Load modules (including ticket handler)
@@ -351,69 +369,28 @@ client.once('ready', async () => {
 
 // Handle slash command and context menu interactions
 client.on('interactionCreate', async interaction => {
+    // FIRST: Check if any event handlers want to handle this interaction
+    for (const [name, eventHandler] of client.eventHandlers) {
+        if (eventHandler.name === 'interactionCreate') {
+            try {
+                await eventHandler.execute(interaction);
+                // If the handler processes buttons/modals, it might handle and return
+                // Continue to allow multiple handlers if needed
+            } catch (error) {
+                console.error(`❌ Error in event handler ${name}:`, error);
+            }
+        }
+    }
+    
     // Handle button interactions
     if (interaction.isButton()) {
         console.log('🔘 Button interaction received:', interaction.customId);
         
         try {
-            // Handle verification button
-            const verificationSystem = require('./modules/verificationSystem');
-            const verifyHandled = await verificationSystem.handleVerifyButton(interaction);
-            if (verifyHandled) return;
-            // Handle moderations pagination buttons
-            if (interaction.customId.startsWith('moderations_')) {
-                // Let the collector in the moderations command handle this
+            // Check if shift buttons (already handled by event handlers above)
+            if (interaction.customId.startsWith('shift_')) {
+                // Already handled by the event handler, skip
                 return;
-            }
-            
-            // Try ticket button handler FIRST
-            if (ticketHandler && ticketHandler.handleTicketButtons) {
-                console.log('🎫 Trying ticket button handler...');
-                const handled = await ticketHandler.handleTicketButtons(interaction);
-                console.log('Ticket handler result:', handled);
-                if (handled) return;
-            }
-            
-            // Try vote button handlers from PREFIX commands
-            const staffVoteCmd = client.prefixCommands.get('staffvote');
-            if (staffVoteCmd && staffVoteCmd.handleButton) {
-                const handled = await staffVoteCmd.handleButton(interaction);
-                if (handled) return;
-            }
-            
-            const playerVoteCmd = client.prefixCommands.get('playervote');
-            if (playerVoteCmd && playerVoteCmd.handleButton) {
-                const handled = await playerVoteCmd.handleButton(interaction);
-                if (handled) return;
-            }
-            
-            // Try vote button handlers from SLASH commands
-            const staffVoteSlash = client.commands.get('staffvote');
-            if (staffVoteSlash && staffVoteSlash.handleButton) {
-                const handled = await staffVoteSlash.handleButton(interaction);
-                if (handled) return;
-            }
-            
-            const playerVoteSlash = client.commands.get('playervote');
-            if (playerVoteSlash && playerVoteSlash.handleButton) {
-                const handled = await playerVoteSlash.handleButton(interaction);
-                if (handled) return;
-            }
-            
-            // Try gban button handler
-            if (buttonHandlers.handleGbanButtons) {
-                console.log('🔨 Calling handleGbanButtons...');
-                const handled = await buttonHandlers.handleGbanButtons(interaction);
-                console.log('Handler result:', handled);
-                if (handled) return;
-            }
-            
-            // Try strike button handler
-            if (buttonHandlers.handleStrikeButtons) {
-                console.log('⚡ Calling handleStrikeButtons...');
-                const handled = await buttonHandlers.handleStrikeButtons(interaction);
-                console.log('Handler result:', handled);
-                if (handled) return;
             }
             
             // If no handler processed the button, log it

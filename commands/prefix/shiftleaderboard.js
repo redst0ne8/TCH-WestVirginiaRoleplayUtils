@@ -4,7 +4,7 @@ const { loadShifts } = require('../../utils/shiftUtils');
 module.exports = {
     name: 'shiftleaderboard',
     description: 'View the shift leaderboard with pagination.',
-    aliases: ['shiftlb', 'shifts'],
+    aliases: ['slb', 'leaderboardshifts'],
     minArgs: 0,
     usage: '[page]',
     

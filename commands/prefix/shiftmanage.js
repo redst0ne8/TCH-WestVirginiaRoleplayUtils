@@ -4,7 +4,7 @@ const { loadShifts, createShiftButtons } = require('../../utils/shiftUtils');
 module.exports = {
     name: 'shiftmanage',
     description: 'Manage your own shift with start, break, and stop buttons.',
-    aliases: ['shift'],
+    aliases: ['sm', 'manageshift'],
     minArgs: 0,
     usage: '',
     

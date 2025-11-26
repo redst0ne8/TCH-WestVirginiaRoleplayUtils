@@ -3,7 +3,7 @@ const { loadShifts, saveShifts } = require('../../utils/shiftUtils');
 module.exports = {
     name: 'shiftreset',
     description: 'Reset all shift times to 0 and DM the previous data.',
-    aliases: [],
+    aliases: ["sr", "resetshifts"],
     minArgs: 0,
     usage: '',
     
